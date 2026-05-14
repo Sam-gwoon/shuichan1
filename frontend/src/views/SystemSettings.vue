@@ -9,7 +9,7 @@
       <div class="card" v-if="announcement">
         <div class="card-header">
           <div><h3>当前公告</h3></div>
-          <el-button type="primary" size="small" plain @click="showEdit">编辑公告</el-button>
+          <el-button v-if="isAdmin" type="primary" size="small" plain @click="showEdit">编辑公告</el-button>
         </div>
         <div class="card-body">
           <div style="border:1px solid #e8edf4;border-radius:12px;background:#fbfcfe;padding:18px">
@@ -47,6 +47,9 @@ export default {
       dialogVisible: false,
       form: { title: '', content: '' }
     };
+  },
+  computed: {
+    isAdmin() { const u = JSON.parse(localStorage.getItem('user') || '{}'); return u.role === 'ADMIN'; }
   },
   created() { getLatestAnnouncement().then(res => { if (res.code === 200 && res.data) this.announcement = res.data; }); },
   methods: {

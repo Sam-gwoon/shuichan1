@@ -36,14 +36,14 @@
         <section class="public-card" v-if="data.incomingInspection || data.finishedInspection">
           <h2 class="public-card__title">检验结果</h2>
           <table class="public-table">
-            <tr v-if="data.incomingInspection"><td class="label">来料质检</td><td><span style="color:#047857;font-weight:600">{{ data.incomingInspection.result }}</span><span style="display:block;font-size:12px;color:#8a98ab;margin-top:2px">{{ data.incomingInspection.time }}</span></td></tr>
-            <tr v-if="data.finishedInspection"><td class="label">成品质检</td><td><span style="color:#047857;font-weight:600">{{ data.finishedInspection.result }}</span><span style="display:block;font-size:12px;color:#8a98ab;margin-top:2px">{{ data.finishedInspection.time }}</span></td></tr>
+            <tr v-if="data.incomingInspection"><td class="label">来料质检</td><td><span style="color:#047857;font-weight:600">{{ data.incomingInspection.result | capitalize }}</span><span style="display:block;font-size:12px;color:#8a98ab;margin-top:2px">{{ data.incomingInspection.time }}</span></td></tr>
+            <tr v-if="data.finishedInspection"><td class="label">成品质检</td><td><span style="color:#047857;font-weight:600">{{ data.finishedInspection.result | capitalize }}</span><span style="display:block;font-size:12px;color:#8a98ab;margin-top:2px">{{ data.finishedInspection.time }}</span></td></tr>
           </table>
         </section>
         <section class="public-card" v-if="data.release">
           <h2 class="public-card__title">放行信息</h2>
           <table class="public-table">
-            <tr><td class="label">放行状态</td><td><span style="color:#047857;font-weight:600">{{ data.release.status }}</span></td></tr>
+            <tr><td class="label">放行状态</td><td><span style="color:#047857;font-weight:600">{{ data.release.status | capitalize }}</span></td></tr>
             <tr><td class="label">放行时间</td><td>{{ data.release.time }}</td></tr>
           </table>
         </section>

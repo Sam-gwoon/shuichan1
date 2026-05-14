@@ -19,18 +19,20 @@
         <p style="color:#6f7e92;font-size:13px" v-if="batch.batch">{{ batch.batch.productType }}批次 · 来源：{{ batch.batch.source }} · 登记：{{ batch.batch.createTime }}</p>
       </div>
       <div style="display:flex;gap:10px">
-        <el-button v-if="batch.releaseStatus === 'unreleased' && batch.finishedInspection && batch.finishedInspection.inspection.result === 'PASS'" type="primary" size="small" @click="doRelease">执行放行</el-button>
+        <el-button v-if="canRelease" type="primary" size="small" @click="doRelease">执行放行</el-button>
+        <el-button v-if="canEditBatch" type="default" size="small" @click="showBatchEditDialog">编辑批次信息</el-button>
+        <el-button v-if="canDeleteBatch" type="danger" size="small" @click="doDeleteBatch">删除批次</el-button>
       </div>
     </div>
 
     <!-- 信息卡片 -->
     <div class="info-row" v-if="batch.batch">
-      <div class="info-cell"><span class="label">生产状态</span><span class="tag" :class="batch.batch.productionStatus === 'completed' ? 'tag-blue' : batch.batch.productionStatus === 'processing' ? 'tag-orange' : 'tag-gray'">{{ batch.batch.productionStatus }}</span></div>
+      <div class="info-cell"><span class="label">生产状态</span><span class="tag" :class="batch.batch.productionStatus === 'completed' ? 'tag-blue' : batch.batch.productionStatus === 'processing' ? 'tag-orange' : 'tag-gray'">{{ batch.batch.productionStatus | capitalize }}</span></div>
       <div class="info-cell"><span class="label">来料质检结果</span>
-        <span class="tag" :class="incResultClass">{{ incResultText }}</span>
+        <span class="tag" :class="incResultClass">{{ incResultText | capitalize }}</span>
       </div>
       <div class="info-cell"><span class="label">成品质检结果</span>
-        <span class="tag" :class="finResultClass">{{ finResultText }}</span>
+        <span class="tag" :class="finResultClass">{{ finResultText | capitalize }}</span>
       </div>
       <div class="info-cell"><span class="label">放行状态</span>
         <span class="tag" :class="batch.batch.releaseStatus === 'released' ? 'tag-green' : 'tag-orange'">{{ batch.batch.releaseStatus === 'released' ? '已放行' : '待放行' }}</span>
@@ -59,7 +61,7 @@
                 <div class="timeline">
                   <div v-for="(item, i) in history" :key="i" class="t-item" :class="i === history.length - 1 ? 'current' : 'done'">
                     <div class="t-dot"><i :class="i === history.length - 1 ? 'el-icon-arrow-right' : 'el-icon-check'"></i></div>
-                    <div class="t-title">{{ item.action }} <span class="tag tag-blue" style="font-size:11px" v-if="item.result">{{ item.result }}</span></div>
+                    <div class="t-title">{{ item.action }} <span class="tag tag-blue" style="font-size:11px" v-if="item.result">{{ item.result | capitalize }}</span></div>
                     <div class="t-time" v-if="item.time">{{ item.time }}</div>
                     <div class="t-desc">{{ item.person }} {{ item.remark }}</div>
                   </div>
@@ -87,12 +89,12 @@
             </div>
           </div>
           <div class="card" v-if="batch.incomingInspection">
-            <div class="card-header"><div><h3>来料质检记录</h3><p>此批次可进入加工环节</p></div><span class="tag tag-green" v-if="batch.incomingInspection.inspection.result === 'PASS'">PASS</span></div>
+            <div class="card-header"><div><h3>来料质检记录</h3><p>此批次可进入加工环节</p></div><span class="tag tag-green" v-if="batch.incomingInspection.inspection.result === 'PASS'">{{ batch.incomingInspection.inspection.result | capitalize }}</span></div>
             <div class="card-body">
               <table style="width:100%">
                 <tr><td style="width:140px;color:#6f7e92;padding:6px 0">检验员工</td><td>{{ batch.incomingInspection.inspectorName }}</td></tr>
                 <tr><td style="color:#6f7e92;padding:6px 0">检验时间</td><td>{{ batch.incomingInspection.inspection.inspectTime }}</td></tr>
-                <tr><td style="color:#6f7e92;padding:6px 0">检验结果</td><td><span :class="'tag tag-' + (batch.incomingInspection.inspection.result === 'PASS' ? 'green' : 'red')">{{ batch.incomingInspection.inspection.result }}</span></td></tr>
+                <tr><td style="color:#6f7e92;padding:6px 0">检验结果</td><td><span :class="'tag tag-' + (batch.incomingInspection.inspection.result === 'PASS' ? 'green' : 'red')">{{ batch.incomingInspection.inspection.result | capitalize }}</span></td></tr>
                 <tr><td style="color:#6f7e92;padding:6px 0">处置方式</td><td>{{ batch.incomingInspection.inspection.disposal }}</td></tr>
                 <tr><td style="color:#6f7e92;padding:6px 0">检验备注</td><td>{{ batch.incomingInspection.inspection.remark }}</td></tr>
               </table>
@@ -106,12 +108,12 @@
             <div class="card-body"><p style="color:#6f7e92">暂无来料质检记录</p></div>
           </div>
           <div class="card" style="grid-column:1/-1" v-if="batch.finishedInspection">
-            <div class="card-header"><div><h3>成品质检记录</h3><p>批次完成后进行的最终检验</p></div><span class="tag tag-green" v-if="batch.finishedInspection.inspection.result === 'PASS'">PASS</span></div>
+            <div class="card-header"><div><h3>成品质检记录</h3><p>批次完成后进行的最终检验</p></div><span class="tag tag-green" v-if="batch.finishedInspection.inspection.result === 'PASS'">{{ batch.finishedInspection.inspection.result | capitalize }}</span></div>
             <div class="card-body">
               <table style="width:100%">
                 <tr><td style="width:140px;color:#6f7e92;padding:6px 0">检验员工</td><td>{{ batch.finishedInspection.inspectorName }}</td></tr>
                 <tr><td style="color:#6f7e92;padding:6px 0">检验时间</td><td>{{ batch.finishedInspection.inspection.inspectTime }}</td></tr>
-                <tr><td style="color:#6f7e92;padding:6px 0">检验结果</td><td><span class="tag tag-green">{{ batch.finishedInspection.inspection.result }}</span></td></tr>
+                <tr><td style="color:#6f7e92;padding:6px 0">检验结果</td><td><span class="tag tag-green">{{ batch.finishedInspection.inspection.result | capitalize }}</span></td></tr>
                 <tr><td style="color:#6f7e92;padding:6px 0">检验项目</td><td>{{ batch.finishedInspection.inspection.items }}</td></tr>
                 <tr><td style="color:#6f7e92;padding:6px 0">备注</td><td>{{ batch.finishedInspection.inspection.remark }}</td></tr>
               </table>
@@ -139,8 +141,15 @@
               <el-table :data="getProcessByType(pt)" stripe>
                 <el-table-column prop="equipment" label="设备"></el-table-column>
                 <el-table-column prop="recordTime" label="时间"></el-table-column>
+                <el-table-column v-if="canAddProcess" label="操作" width="120">
+                  <template slot-scope="pr">
+                    <el-button type="text" @click="editProcessRecord(pr.row)">编辑</el-button>
+                    <el-button type="text" style="color:#ef4444" @click="deleteProcessRecord(pr.row.id)">删除</el-button>
+                  </template>
+                </el-table-column>
               </el-table>
-              <el-button v-if="getProcessByType(pt).length === 0" type="text" @click="addProcessRecord(pt)" style="margin-top:8px">+ 添加记录</el-button>
+              <el-button v-if="getProcessByType(pt).length === 0 && canAddProcess" type="text" @click="addProcessRecord(pt)" style="margin-top:8px">+ 添加记录</el-button>
+              <el-button v-if="getProcessByType(pt).length > 0 && canAddProcess" type="text" @click="addProcessRecord(pt)" style="margin-top:8px">+ 添加记录</el-button>
             </div>
           </div>
         </div>
@@ -183,7 +192,7 @@
               <el-table-column prop="action" label="操作"></el-table-column>
               <el-table-column prop="person" label="人员"></el-table-column>
               <el-table-column label="结果/状态">
-                <template slot-scope="s"><span class="tag tag-blue" style="font-size:11px">{{ s.row.result }}</span></template>
+                <template slot-scope="s"><span class="tag tag-blue" style="font-size:11px">{{ s.row.result | capitalize }}</span></template>
               </el-table-column>
               <el-table-column prop="time" label="时间" width="180"></el-table-column>
               <el-table-column prop="remark" label="备注"></el-table-column>
@@ -192,19 +201,65 @@
         </div>
       </el-tab-pane>
     </el-tabs>
+
+    <el-dialog title="编辑批次信息" :visible.sync="batchEditVisible" width="600px">
+      <el-form :model="batchEditForm" label-width="100px">
+        <el-row :gutter="16">
+          <el-col :span="12"><el-form-item label="产品类型"><el-input v-model="batchEditForm.productType"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="原料类型"><el-input v-model="batchEditForm.rawMaterialType"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="来源/供应商"><el-input v-model="batchEditForm.source"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="产地"><el-input v-model="batchEditForm.origin"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="数量(kg)"><el-input v-model="batchEditForm.quantity"></el-input></el-form-item></el-col>
+          <el-col :span="12"><el-form-item label="证书编号"><el-input v-model="batchEditForm.certificateNo"></el-input></el-form-item></el-col>
+        </el-row>
+        <el-form-item label="备注"><el-input v-model="batchEditForm.remark" type="textarea" rows="3"></el-input></el-form-item>
+      </el-form>
+      <div slot="footer"><el-button @click="batchEditVisible = false">取消</el-button><el-button type="primary" @click="saveBatchEdit">保存</el-button></div>
+    </el-dialog>
+
+    <el-dialog title="编辑生产记录" :visible.sync="processEditVisible" width="400px">
+      <el-form :model="processEditForm" label-width="80px">
+        <el-form-item label="设备名称"><el-input v-model="processEditForm.equipment"></el-input></el-form-item>
+      </el-form>
+      <div slot="footer"><el-button @click="processEditVisible = false">取消</el-button><el-button type="primary" @click="saveProcessEdit">保存</el-button></div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getBatchDetail, executeRelease, addProductionRecord } from '../api';
+import { getBatchDetail, executeRelease, addProductionRecord, updateBatch, deleteBatch, updateProductionRecord, deleteProductionRecord } from '../api';
 export default {
   data() {
     return {
       activeTab: 'overview',
-      batch: {}
+      batch: {},
+      batchEditVisible: false,
+      batchEditForm: {},
+      processEditVisible: false,
+      processEditForm: { id: null, equipment: '' }
     };
   },
   computed: {
+    user() { try { return JSON.parse(localStorage.getItem('user')); } catch(e) { return {}; } },
+    canEditBatch() {
+      const u = this.user;
+      return u.role === 'ADMIN' || u.role === 'PROD_MANAGER';
+    },
+    canDeleteBatch() {
+      const u = this.user;
+      return (u.role === 'ADMIN' || u.role === 'PROD_MANAGER') && this.batch.batch && this.batch.batch.releaseStatus !== 'released';
+    },
+    canRelease() {
+      const u = this.user;
+      return (u.role === 'ADMIN' || u.role === 'PROD_MANAGER')
+        && this.batch.releaseStatus === 'unreleased'
+        && this.batch.finishedInspection
+        && this.batch.finishedInspection.inspection.result === 'PASS';
+    },
+    canAddProcess() {
+      const u = this.user;
+      return u.role === 'ADMIN' || u.role === 'PROD_MANAGER' || u.role === 'OPERATOR';
+    },
     basicInfo() {
       const b = this.batch.batch;
       if (!b) return [];
@@ -312,6 +367,51 @@ export default {
             this.$message.success('记录已添加');
             this.loadDetail();
           }
+        });
+      }).catch(() => {});
+    },
+    showBatchEditDialog() {
+      const b = this.batch.batch;
+      this.batchEditForm = {
+        productType: b.productType || '',
+        rawMaterialType: b.rawMaterialType || '',
+        source: b.source || '',
+        origin: b.origin || '',
+        quantity: b.quantity || '',
+        certificateNo: b.certificateNo || '',
+        remark: b.remark || ''
+      };
+      this.batchEditVisible = true;
+    },
+    saveBatchEdit() {
+      updateBatch(this.$route.params.id, this.batchEditForm).then(res => {
+        if (res.code === 200) { this.$message.success('批次信息已更新'); this.batchEditVisible = false; this.loadDetail(); }
+        else this.$message.error(res.message);
+      });
+    },
+    doDeleteBatch() {
+      this.$confirm('确认删除该批次及其所有关联记录？此操作不可恢复。', '警告', { type: 'warning' }).then(() => {
+        deleteBatch(this.$route.params.id).then(res => {
+          if (res.code === 200) { this.$message.success('批次已删除'); this.$router.push('/batches'); }
+          else this.$message.error(res.message);
+        });
+      }).catch(() => {});
+    },
+    editProcessRecord(row) {
+      this.processEditForm = { id: row.id, equipment: row.equipment };
+      this.processEditVisible = true;
+    },
+    saveProcessEdit() {
+      updateProductionRecord(this.processEditForm.id, { equipment: this.processEditForm.equipment }).then(res => {
+        if (res.code === 200) { this.$message.success('记录已更新'); this.processEditVisible = false; this.loadDetail(); }
+        else this.$message.error(res.message);
+      });
+    },
+    deleteProcessRecord(id) {
+      this.$confirm('确认删除该生产记录？', '提示', { type: 'warning' }).then(() => {
+        deleteProductionRecord(id).then(res => {
+          if (res.code === 200) { this.$message.success('记录已删除'); this.loadDetail(); }
+          else this.$message.error(res.message);
         });
       }).catch(() => {});
     }

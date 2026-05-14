@@ -25,14 +25,14 @@
             <button class="nav-item" :class="{ active: $route.path === '/batches' }" @click="$router.push('/batches')">
               <i class="el-icon-s-order"></i><span>批次总览列表</span>
             </button>
-            <button class="nav-item" :class="{ active: $route.path === '/batches/create' }" @click="$router.push('/batches/create')">
+            <button class="nav-item" v-if="userRole === 'ADMIN' || userRole === 'PROD_MANAGER' || userRole === 'OPERATOR'" :class="{ active: $route.path === '/batches/create' }" @click="$router.push('/batches/create')">
               <i class="el-icon-circle-plus-outline"></i><span>原料登记入库</span>
             </button>
-            <button class="nav-item" :class="{ active: $route.path === '/batches/scan' }" @click="$router.push('/batches/scan')">
+            <button class="nav-item" v-if="userRole === 'ADMIN' || userRole === 'PROD_MANAGER'" :class="{ active: $route.path === '/batches/scan' }" @click="$router.push('/batches/scan')">
               <i class="el-icon-s-data"></i><span>扫码快速录入</span>
             </button>
           </div>
-          <div class="nav-group">
+          <div class="nav-group" v-if="userRole === 'ADMIN' || userRole === 'INSPECTOR'">
             <div class="nav-label">质量管控</div>
             <button class="nav-item" :class="{ active: $route.path === '/inspection/workbench' }" @click="$router.push('/inspection/workbench')">
               <i class="el-icon-s-check"></i><span>质检工作台</span>
@@ -43,7 +43,7 @@
           </div>
           <div class="nav-group">
             <div class="nav-label">放行与追溯</div>
-            <button class="nav-item" :class="{ active: $route.path === '/release' }" @click="$router.push('/release')">
+            <button class="nav-item" v-if="userRole === 'ADMIN' || userRole === 'PROD_MANAGER'" :class="{ active: $route.path === '/release' }" @click="$router.push('/release')">
               <i class="el-icon-circle-check"></i><span>产品放行管理</span>
             </button>
             <button class="nav-item" :class="{ active: $route.path === '/traceability' }" @click="$router.push('/traceability')">
@@ -53,7 +53,7 @@
               <i class="el-icon-view"></i><span>公共追溯查询</span>
             </button>
           </div>
-          <div class="nav-group">
+          <div class="nav-group" v-if="userRole === 'ADMIN'">
             <div class="nav-label">系统管理</div>
             <button class="nav-item" :class="{ active: $route.path === '/users' }" @click="$router.push('/users')">
               <i class="el-icon-user-solid"></i><span>人员权限管理</span>
@@ -137,6 +137,10 @@ export default {
     userRealName() {
       const u = this.getUser();
       return u ? u.realName : 'User';
+    },
+    userRole() {
+      const u = this.getUser();
+      return u ? u.role : '';
     },
     userRoleName() {
       const u = this.getUser();

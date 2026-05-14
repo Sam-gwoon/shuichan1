@@ -3,6 +3,7 @@ package com.aquatic.controller;
 import com.aquatic.dto.ApiResult;
 import com.aquatic.service.ReleaseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -35,6 +36,7 @@ public class ReleaseController {
     }
 
     @PostMapping("/execute/{batchId}")
+    @PreAuthorize("hasAnyAuthority('PROD_MANAGER', 'ADMIN')")
     public ApiResult<?> execute(@PathVariable Long batchId, @RequestParam Long managerId) {
         releaseService.performRelease(batchId, managerId);
         return ApiResult.success();

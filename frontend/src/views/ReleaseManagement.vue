@@ -29,12 +29,12 @@
               <el-table-column prop="batchNo" label="批次编号" width="180"><template slot-scope="s"><strong>{{ s.row.batchNo }}</strong></template></el-table-column>
               <el-table-column prop="productType" label="产品类型"></el-table-column>
               <el-table-column label="成品质检">
-                <template slot-scope="s"><span class="tag tag-green">{{ s.row.finishedInspection }}</span></template>
+                <template slot-scope="s"><span class="tag tag-green">{{ s.row.finishedInspection | capitalize }}</span></template>
               </el-table-column>
               <el-table-column label="工序完整性">
                 <template slot-scope="s"><span :class="s.row.processSteps === '3/3' ? 'tag tag-green' : 'tag tag-orange'">{{ s.row.processSteps }}</span></template>
               </el-table-column>
-              <el-table-column label="操作">
+              <el-table-column label="操作" v-if="canReleaseRole">
                 <template slot-scope="s">
                   <el-button type="primary" size="small" @click="doRelease(s.row)">执行放行</el-button>
                 </template>
@@ -69,6 +69,12 @@ export default {
       pendingList: [],
       releasedList: []
     };
+  },
+  computed: {
+    canReleaseRole() {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      return u.role === 'ADMIN' || u.role === 'PROD_MANAGER';
+    }
   },
   created() { this.load(); },
   methods: {

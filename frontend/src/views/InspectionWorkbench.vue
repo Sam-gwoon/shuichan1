@@ -29,7 +29,7 @@
           <el-table-column prop="productType" label="产品类型"></el-table-column>
           <el-table-column prop="type" label="质检类型"></el-table-column>
           <el-table-column label="当前状态">
-            <template slot-scope="s"><span class="tag tag-gray">{{ s.row.status }}</span></template>
+            <template slot-scope="s"><span class="tag tag-gray">{{ s.row.status | capitalize }}</span></template>
           </el-table-column>
           <el-table-column label="操作">
             <template slot-scope="s">

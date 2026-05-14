@@ -16,7 +16,7 @@
               <el-col :span="12"><el-form-item label="联系电话"><el-input v-model="form.phone"></el-input></el-form-item></el-col>
             </el-row>
             <el-form-item label="经营范围"><el-input v-model="form.scope" type="textarea" rows="3"></el-input></el-form-item>
-            <el-form-item><el-button type="primary" @click="save" :loading="saving">保存信息</el-button></el-form-item>
+            <el-form-item v-if="isAdmin"><el-button type="primary" @click="save" :loading="saving">保存信息</el-button></el-form-item>
           </el-form>
         </div>
       </div>
@@ -28,6 +28,9 @@
 import { getEnterpriseInfo, updateEnterpriseInfo } from '../api';
 export default {
   data() { return { form: {}, saving: false }; },
+  computed: {
+    isAdmin() { const u = JSON.parse(localStorage.getItem('user') || '{}'); return u.role === 'ADMIN'; }
+  },
   created() { getEnterpriseInfo().then(res => { if (res.code === 200 && res.data) this.form = res.data; }); },
   methods: {
     save() {

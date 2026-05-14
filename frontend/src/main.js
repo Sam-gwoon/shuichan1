@@ -5,6 +5,11 @@ import router from './router';
 
 Vue.use(ElementUI);
 
+Vue.filter('capitalize', function(value) {
+  if (!value) return '';
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+});
+
 Vue.config.productionTip = false;
 
 new Vue({

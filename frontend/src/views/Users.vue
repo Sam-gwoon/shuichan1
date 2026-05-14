@@ -3,7 +3,7 @@
     <div class="breadcrumb"><a @click="$router.push('/home')">首页</a> / <span>人员权限管理</span></div>
     <div style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start">
       <div><h1 style="font-size:22px;margin-bottom:4px">人员权限管理</h1><p style="color:#6f7e92;font-size:13px">管理系统用户账号与角色权限分配</p></div>
-      <el-button type="primary" size="small" @click="showAddDialog">+ 新增用户</el-button>
+      <el-button v-if="isAdmin" type="primary" size="small" @click="showAddDialog">+ 新增用户</el-button>
     </div>
     <div class="card">
       <div class="card-body">
@@ -17,7 +17,7 @@
           <el-table-column label="状态" width="80">
             <template slot-scope="s"><span :class="s.row.status === 1 ? 'tag tag-green' : 'tag tag-red'">{{ s.row.status === 1 ? '启用' : '禁用' }}</span></template>
           </el-table-column>
-          <el-table-column label="操作">
+          <el-table-column v-if="isAdmin" label="操作">
             <template slot-scope="s">
               <el-button type="text" @click="showEditDialog(s.row)">编辑</el-button>
               <el-button type="text" style="color:#ef4444" @click="doDelete(s.row)">删除</el-button>
@@ -64,6 +64,9 @@ export default {
       form: { username: '', realName: '', password: '', role: 'OPERATOR', employeeNo: '', statusBool: true },
       roleMap: { ADMIN: 'Admin', PROD_MANAGER: 'Production Manager', INSPECTOR: 'Quality Inspector', OPERATOR: 'Production Operator' }
     };
+  },
+  computed: {
+    isAdmin() { const u = JSON.parse(localStorage.getItem('user') || '{}'); return u.role === 'ADMIN'; }
   },
   created() { this.load(); },
   methods: {

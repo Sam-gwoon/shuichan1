@@ -47,6 +47,8 @@ export const getRecentBatches = () => request.get('/dashboard/recent-batches');
 export const getBatches = (params) => request.get('/batches', { params });
 export const getBatchDetail = (id) => request.get(`/batches/${id}`);
 export const createBatch = (data) => request.post('/batches', data);
+export const updateBatch = (id, data) => request.put(`/batches/${id}`, data);
+export const deleteBatch = (id) => request.delete(`/batches/${id}`);
 
 // 质检
 export const getInspectionWorkbench = () => request.get('/inspections/workbench');
@@ -57,6 +59,8 @@ export const performFinishedInspection = (data) => request.post('/inspections/fi
 // 生产工序
 export const getProductionRecords = (batchId) => request.get(`/production/batch/${batchId}`);
 export const addProductionRecord = (data) => request.post('/production/records', data);
+export const updateProductionRecord = (id, data) => request.put(`/production/records/${id}`, data);
+export const deleteProductionRecord = (id) => request.delete(`/production/records/${id}`);
 
 // 放行
 export const getReleaseStats = () => request.get('/release/stats');

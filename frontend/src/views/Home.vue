@@ -39,7 +39,7 @@
     </div>
 
     <!-- 业务流程 + 快速查询 -->
-    <div class="grid-2" style="margin-bottom:20px">
+    <div style="display:grid;grid-template-columns:1.6fr 0.4fr;gap:20px;margin-bottom:20px">
       <div class="card">
         <div class="card-header">
           <div><h3>业务流程</h3><p>从原料入库到最终查询的完整监管流程</p></div>
@@ -120,12 +120,12 @@
           <el-table-column prop="productType" label="产品类型"></el-table-column>
           <el-table-column prop="incomingInspection" label="来料质检">
             <template slot-scope="scope">
-              <span class="tag" :class="scope.row.incomingInspection === 'PASS' ? 'tag-green' : scope.row.incomingInspection === 'FAIL' ? 'tag-red' : 'tag-gray'">{{ scope.row.incomingInspection }}</span>
+              <span class="tag" :class="scope.row.incomingInspection === 'PASS' ? 'tag-green' : scope.row.incomingInspection === 'FAIL' ? 'tag-red' : 'tag-gray'">{{ scope.row.incomingInspection | capitalize }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="productionStatus" label="生产状态">
             <template slot-scope="scope">
-              <span class="tag" :class="scope.row.productionStatus === 'completed' ? 'tag-blue' : scope.row.productionStatus === 'processing' ? 'tag-orange' : 'tag-gray'">{{ scope.row.productionStatus }}</span>
+              <span class="tag" :class="scope.row.productionStatus === 'completed' ? 'tag-blue' : scope.row.productionStatus === 'processing' ? 'tag-orange' : 'tag-gray'">{{ scope.row.productionStatus | capitalize }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="updateTime" label="更新时间" width="180"></el-table-column>

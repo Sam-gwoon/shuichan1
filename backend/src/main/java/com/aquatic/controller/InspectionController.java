@@ -5,6 +5,7 @@ import com.aquatic.entity.FinishedInspection;
 import com.aquatic.entity.IncomingInspection;
 import com.aquatic.service.InspectionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,12 +28,14 @@ public class InspectionController {
     }
 
     @PostMapping("/incoming")
+    @PreAuthorize("hasAnyAuthority('INSPECTOR', 'ADMIN')")
     public ApiResult<?> performIncoming(@RequestBody IncomingInspection inspection) {
         inspectionService.performIncoming(inspection);
         return ApiResult.success();
     }
 
     @PostMapping("/finished")
+    @PreAuthorize("hasAnyAuthority('INSPECTOR', 'ADMIN')")
     public ApiResult<?> performFinished(@RequestBody FinishedInspection inspection) {
         inspectionService.performFinished(inspection);
         return ApiResult.success();

@@ -195,6 +195,27 @@ public class BatchServiceImpl implements BatchService {
     }
 
     @Override
+    public void update(Batch batch) {
+        Batch existing = batchMapper.selectById(batch.getId());
+        if (existing == null) throw new RuntimeException("批次不存在");
+        if ("released".equals(existing.getReleaseStatus())) throw new RuntimeException("已放行批次不可修改");
+        batchMapper.updateById(batch);
+    }
+
+    @Override
+    public void delete(Long id) {
+        Batch batch = batchMapper.selectById(id);
+        if (batch == null) throw new RuntimeException("批次不存在");
+        if ("released".equals(batch.getReleaseStatus())) throw new RuntimeException("已放行批次不可删除");
+        productionMapper.delete(new LambdaQueryWrapper<ProductionRecord>().eq(ProductionRecord::getBatchId, id));
+        incomingMapper.delete(new LambdaQueryWrapper<IncomingInspection>().eq(IncomingInspection::getBatchId, id));
+        finishedMapper.delete(new LambdaQueryWrapper<FinishedInspection>().eq(FinishedInspection::getBatchId, id));
+        releaseMapper.delete(new LambdaQueryWrapper<ReleaseRecord>().eq(ReleaseRecord::getBatchId, id));
+        traceMapper.delete(new LambdaQueryWrapper<TraceabilityCode>().eq(TraceabilityCode::getBatchId, id));
+        batchMapper.deleteById(id);
+    }
+
+    @Override
     public List<Map<String, Object>> getRecent(int limit) {
         LambdaQueryWrapper<Batch> qw = new LambdaQueryWrapper<>();
         qw.orderByDesc(Batch::getCreateTime).last("LIMIT " + limit);

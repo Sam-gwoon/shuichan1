@@ -44,11 +44,11 @@
           <el-table-column prop="operatorName" label="收货员工"></el-table-column>
           <el-table-column label="质检状态">
             <template slot-scope="s">
-              <span :class="'tag tag-' + (s.row.incomingInspection === 'PASS' ? 'green' : s.row.incomingInspection === 'FAIL' ? 'red' : 'gray')">{{ s.row.incomingInspection }}</span>
+              <span :class="'tag tag-' + (s.row.incomingInspection === 'PASS' ? 'green' : s.row.incomingInspection === 'FAIL' ? 'red' : 'gray')">{{ s.row.incomingInspection | capitalize }}</span>
             </template>
           </el-table-column>
           <el-table-column label="生产状态">
-            <template slot-scope="s"><span :class="'tag tag-' + (s.row.productionStatus === 'completed' ? 'blue' : s.row.productionStatus === 'processing' ? 'orange' : 'gray')">{{ s.row.productionStatus }}</span></template>
+            <template slot-scope="s"><span :class="'tag tag-' + (s.row.productionStatus === 'completed' ? 'blue' : s.row.productionStatus === 'processing' ? 'orange' : 'gray')">{{ s.row.productionStatus | capitalize }}</span></template>
           </el-table-column>
           <el-table-column label="放行状态" width="100">
             <template slot-scope="s"><span class="tag tag-gray" style="font-size:11px">{{ s.row.releaseStatus === 'released' ? '已放行' : '未放行' }}</span></template>

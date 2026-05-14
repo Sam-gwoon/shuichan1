@@ -4,10 +4,12 @@ import com.aquatic.dto.ApiResult;
 import com.aquatic.entity.User;
 import com.aquatic.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@PreAuthorize("hasAuthority('ADMIN')")
 public class UserController {
 
     @Autowired

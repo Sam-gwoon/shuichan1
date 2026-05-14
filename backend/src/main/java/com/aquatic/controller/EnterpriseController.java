@@ -4,6 +4,7 @@ import com.aquatic.dto.ApiResult;
 import com.aquatic.entity.EnterpriseInfo;
 import com.aquatic.service.EnterpriseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +20,7 @@ public class EnterpriseController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ApiResult<?> update(@RequestBody EnterpriseInfo info) {
         enterpriseService.update(info);
         return ApiResult.success();

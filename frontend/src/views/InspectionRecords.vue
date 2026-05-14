@@ -29,7 +29,7 @@
           <el-table-column prop="type" label="质检类型" width="100"></el-table-column>
           <el-table-column prop="inspector" label="检验员工" width="120"></el-table-column>
           <el-table-column label="结果" width="80">
-            <template slot-scope="s"><span :class="'tag tag-' + (s.row.result === 'PASS' ? 'green' : s.row.result === 'FAIL' ? 'red' : 'gray')">{{ s.row.result }}</span></template>
+            <template slot-scope="s"><span :class="'tag tag-' + (s.row.result === 'PASS' ? 'green' : s.row.result === 'FAIL' ? 'red' : 'gray')">{{ s.row.result | capitalize }}</span></template>
           </el-table-column>
           <el-table-column prop="time" label="检验时间" width="180"></el-table-column>
           <el-table-column prop="remark" label="备注"></el-table-column>

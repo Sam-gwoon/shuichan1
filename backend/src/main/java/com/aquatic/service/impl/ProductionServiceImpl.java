@@ -47,4 +47,14 @@ public class ProductionServiceImpl implements ProductionService {
             }
         }
     }
+
+    @Override
+    public void updateRecord(ProductionRecord record) {
+        recordMapper.updateById(record);
+    }
+
+    @Override
+    public void deleteRecord(Long id) {
+        recordMapper.deleteById(id);
+    }
 }

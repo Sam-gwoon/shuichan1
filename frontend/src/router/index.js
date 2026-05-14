@@ -26,17 +26,17 @@ const routes = [
   { path: '/public', component: PublicQuery, meta: { noAuth: true } },
   { path: '/home', component: Home },
   { path: '/batches', component: BatchList },
-  { path: '/batches/create', component: BatchCreate },
-  { path: '/batches/scan', component: ScanEntry },
+  { path: '/batches/create', component: BatchCreate, meta: { roles: ['ADMIN', 'PROD_MANAGER', 'OPERATOR'] } },
+  { path: '/batches/scan', component: ScanEntry, meta: { roles: ['ADMIN', 'PROD_MANAGER'] } },
   { path: '/batches/:id', component: BatchDetail },
-  { path: '/inspection/workbench', component: InspectionWorkbench },
-  { path: '/inspection/records', component: InspectionRecords },
-  { path: '/release', component: ReleaseManagement },
+  { path: '/inspection/workbench', component: InspectionWorkbench, meta: { roles: ['ADMIN', 'INSPECTOR'] } },
+  { path: '/inspection/records', component: InspectionRecords, meta: { roles: ['ADMIN', 'INSPECTOR'] } },
+  { path: '/release', component: ReleaseManagement, meta: { roles: ['ADMIN', 'PROD_MANAGER'] } },
   { path: '/traceability', component: TraceabilityRecords },
   { path: '/traceability/preview', component: PublicTrace },
-  { path: '/users', component: Users },
-  { path: '/enterprise', component: EnterpriseInfo },
-  { path: '/announcements', component: SystemSettings },
+  { path: '/users', component: Users, meta: { roles: ['ADMIN'] } },
+  { path: '/enterprise', component: EnterpriseInfo, meta: { roles: ['ADMIN'] } },
+  { path: '/announcements', component: SystemSettings, meta: { roles: ['ADMIN'] } },
   { path: '/profile', component: Profile },
 ];
 
@@ -49,6 +49,13 @@ router.beforeEach((to, from, next) => {
     next();
   } else if (!token) {
     next('/login');
+  } else if (to.meta && to.meta.roles) {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (to.meta.roles.includes(user.role)) {
+      next();
+    } else {
+      next('/home');
+    }
   } else {
     next();
   }
