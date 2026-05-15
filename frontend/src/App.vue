@@ -32,6 +32,12 @@
               <i class="el-icon-s-data"></i><span>扫码快速录入</span>
             </button>
           </div>
+          <div class="nav-group" v-if="userRole === 'ADMIN' || userRole === 'PROD_MANAGER' || userRole === 'OPERATOR'">
+            <div class="nav-label">生产管理</div>
+            <button class="nav-item" :class="{ active: $route.path === '/production' }" @click="$router.push('/production')">
+              <i class="el-icon-setting"></i><span>生产工序管理</span>
+            </button>
+          </div>
           <div class="nav-group" v-if="userRole === 'ADMIN' || userRole === 'INSPECTOR'">
             <div class="nav-label">质量管控</div>
             <button class="nav-item" :class="{ active: $route.path === '/inspection/workbench' }" @click="$router.push('/inspection/workbench')">
@@ -118,7 +124,7 @@ export default {
         '/home': '首页 Dashboard', '/batches': '批次总览列表', '/batches/create': '原料登记入库',
         '/batches/scan': '扫码快速录入', '/inspection/workbench': '质检工作台',
         '/inspection/records': '质检记录档案', '/release': '产品放行管理',
-        '/traceability': '追溯记录中心', '/traceability/preview': '公共追溯查询',
+        '/production': '生产工序管理', '/traceability': '追溯记录中心', '/traceability/preview': '公共追溯查询',
         '/users': '人员权限管理', '/enterprise': '企业信息管理',
         '/announcements': '系统公告', '/profile': '个人资料'
       };

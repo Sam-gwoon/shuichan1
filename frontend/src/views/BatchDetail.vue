@@ -324,6 +324,7 @@ export default {
     }
   },
   created() {
+    if (this.$route.query.tab) this.activeTab = this.$route.query.tab;
     this.loadDetail();
   },
   methods: {

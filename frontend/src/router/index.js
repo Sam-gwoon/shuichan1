@@ -13,6 +13,7 @@ import InspectionWorkbench from '../views/InspectionWorkbench.vue';
 import InspectionRecords from '../views/InspectionRecords.vue';
 import ReleaseManagement from '../views/ReleaseManagement.vue';
 import TraceabilityRecords from '../views/TraceabilityRecords.vue';
+import ProductionWorkbench from '../views/ProductionWorkbench.vue';
 import PublicTrace from '../views/PublicTrace.vue';
 import Users from '../views/Users.vue';
 import EnterpriseInfo from '../views/EnterpriseInfo.vue';
@@ -31,6 +32,7 @@ const routes = [
   { path: '/batches/:id', component: BatchDetail },
   { path: '/inspection/workbench', component: InspectionWorkbench, meta: { roles: ['ADMIN', 'INSPECTOR'] } },
   { path: '/inspection/records', component: InspectionRecords, meta: { roles: ['ADMIN', 'INSPECTOR'] } },
+  { path: '/production', component: ProductionWorkbench, meta: { roles: ['ADMIN', 'PROD_MANAGER', 'OPERATOR'] } },
   { path: '/release', component: ReleaseManagement, meta: { roles: ['ADMIN', 'PROD_MANAGER'] } },
   { path: '/traceability', component: TraceabilityRecords },
   { path: '/traceability/preview', component: PublicTrace },
