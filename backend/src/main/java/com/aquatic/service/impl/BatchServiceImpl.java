@@ -6,8 +6,12 @@ import com.aquatic.service.BatchService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -188,10 +192,46 @@ public class BatchServiceImpl implements BatchService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void create(Batch batch) {
+        if (!StringUtils.hasText(batch.getBatchNo())) {
+            batch.setBatchNo(generateBatchNo(batch.getReceiptTime()));
+        }
         batch.setProductionStatus("created");
         batch.setReleaseStatus("unreleased");
         batchMapper.insert(batch);
+
+        IncomingInspection incomingInspection = new IncomingInspection();
+        incomingInspection.setBatchId(batch.getId());
+        incomingInspection.setResult("PENDING");
+        incomingMapper.insert(incomingInspection);
+    }
+
+    private String generateBatchNo(LocalDateTime receiptTime) {
+        LocalDate date = receiptTime != null ? receiptTime.toLocalDate() : LocalDate.now();
+        String datePart = date.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String prefix = "BT-" + datePart + "-";
+
+        List<Batch> sameDayBatches = batchMapper.selectList(
+                new LambdaQueryWrapper<Batch>()
+                        .likeRight(Batch::getBatchNo, prefix)
+                        .orderByDesc(Batch::getBatchNo)
+        );
+
+        int nextSequence = 1;
+        if (!sameDayBatches.isEmpty()) {
+            String latestBatchNo = sameDayBatches.get(0).getBatchNo();
+            if (StringUtils.hasText(latestBatchNo) && latestBatchNo.length() >= prefix.length() + 3) {
+                String sequencePart = latestBatchNo.substring(prefix.length());
+                try {
+                    nextSequence = Integer.parseInt(sequencePart) + 1;
+                } catch (NumberFormatException ignored) {
+                    nextSequence = sameDayBatches.size() + 1;
+                }
+            }
+        }
+
+        return prefix + String.format("%03d", nextSequence);
     }
 
     @Override

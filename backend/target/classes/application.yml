@@ -6,6 +6,8 @@ spring:
     url: jdbc:mysql://localhost:3306/aquatic_supervision?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
     password: 123456
+#    username: aquatic_supervision
+#    password: j8iK8spmH8nycd3N
     driver-class-name: com.mysql.cj.jdbc.Driver
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
