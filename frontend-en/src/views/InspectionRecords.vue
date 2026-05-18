@@ -20,14 +20,26 @@
         </el-form-item>
         <el-form-item><el-button type="primary" size="small" @click="search">Search</el-button></el-form-item>
       </el-form>
-      <el-table :data="records" stripe>
+      <el-table :data="pagedRecords" stripe>
         <el-table-column prop="batchNo" label="Batch No." width="180"></el-table-column>
-        <el-table-column prop="type" label="Type" width="130"></el-table-column>
-        <el-table-column prop="inspector" label="Inspector" width="120"></el-table-column>
-        <el-table-column label="Result" width="80"><template slot-scope="s"><span :class="'tag tag-' + (s.row.result === 'PASS' ? 'green' : s.row.result === 'FAIL' ? 'red' : 'gray')">{{ s.row.result }}</span></template></el-table-column>
-        <el-table-column prop="time" label="Time" width="180"></el-table-column>
+        <el-table-column prop="type" label="Type" width="180"></el-table-column>
+        <el-table-column prop="inspector" label="Inspector" width="180"></el-table-column>
+        <el-table-column label="Result" width="120"><template slot-scope="s"><span :class="'tag tag-' + (s.row.result === 'PASS' ? 'green' : s.row.result === 'FAIL' ? 'red' : 'gray')">{{ s.row.result }}</span></template></el-table-column>
+        <el-table-column prop="time" label="Time" width="240"></el-table-column>
         <el-table-column prop="remark" label="Remarks"></el-table-column>
       </el-table>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px" v-if="records.length > 0">
+        <el-pagination
+          background
+          :current-page="page"
+          :page-sizes="pageSizes"
+          :page-size="pageSize"
+          :total="records.length"
+          layout="total, sizes, prev, pager, next"
+          @size-change="handleSizeChange"
+          @current-change="handlePageChange">
+        </el-pagination>
+      </div>
     </div></div>
   </div>
 </template>
@@ -35,8 +47,38 @@
 <script>
 import { getInspectionRecords } from '../api';
 export default {
-  data() { return { records: [], filters: { batchNo: '', type: '', result: '' } }; },
+  data() {
+    return {
+      records: [],
+      filters: { batchNo: '', type: '', result: '' },
+      page: 1,
+      pageSize: 10,
+      pageSizes: [5, 10, 20, 50]
+    };
+  },
+  computed: {
+    pagedRecords() {
+      const start = (this.page - 1) * this.pageSize;
+      return this.records.slice(start, start + this.pageSize);
+    }
+  },
   created() { this.search(); },
-  methods: { search() { getInspectionRecords(this.filters).then(res => { if (res.code === 200) this.records = res.data; }); } }
+  methods: {
+    search() {
+      getInspectionRecords(this.filters).then(res => {
+        if (res.code === 200) {
+          this.records = res.data;
+          this.page = 1;
+        }
+      });
+    },
+    handleSizeChange(size) {
+      this.pageSize = size;
+      this.page = 1;
+    },
+    handlePageChange(page) {
+      this.page = page;
+    }
+  }
 };
 </script>

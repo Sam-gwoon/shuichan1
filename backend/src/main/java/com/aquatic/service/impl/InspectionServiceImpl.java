@@ -6,12 +6,16 @@ import com.aquatic.service.InspectionService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 public class InspectionServiceImpl implements InspectionService {
+
+    private static final String INCOMING_TYPE = "Incoming Inspection";
+    private static final String FINISHED_TYPE = "Finished Inspection";
 
     @Autowired
     private IncomingInspectionMapper incomingMapper;
@@ -37,7 +41,7 @@ public class InspectionServiceImpl implements InspectionService {
                 row.put("batchId", batch.getId());
                 row.put("batchNo", batch.getBatchNo());
                 row.put("productType", batch.getProductType());
-                row.put("type", "来料质检");
+                row.put("type", INCOMING_TYPE);
                 row.put("status", batch.getProductionStatus());
                 row.put("createTime", batch.getCreateTime());
                 list.add(row);
@@ -57,7 +61,7 @@ public class InspectionServiceImpl implements InspectionService {
                 row.put("batchId", batch.getId());
                 row.put("batchNo", batch.getBatchNo());
                 row.put("productType", batch.getProductType());
-                row.put("type", "成品质检");
+                row.put("type", FINISHED_TYPE);
                 row.put("status", batch.getProductionStatus());
                 row.put("createTime", batch.getCreateTime());
                 list.add(row);
@@ -75,14 +79,14 @@ public class InspectionServiceImpl implements InspectionService {
         for (IncomingInspection inc : incs) {
             Batch batch = batchMapper.selectById(inc.getBatchId());
             if (batch == null) continue;
-            if (batchNo != null && !batch.getBatchNo().contains(batchNo)) continue;
-            if (type != null && !type.equals("来料质检")) continue;
-            if (result != null && !result.equals(inc.getResult())) continue;
+            if (StringUtils.hasText(batchNo) && !batch.getBatchNo().contains(batchNo)) continue;
+            if (StringUtils.hasText(type) && !type.equals(INCOMING_TYPE)) continue;
+            if (StringUtils.hasText(result) && !result.equals(inc.getResult())) continue;
 
             User inspector = userMapper.selectById(inc.getInspectorId());
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("batchNo", batch.getBatchNo());
-            row.put("type", "来料质检");
+            row.put("type", INCOMING_TYPE);
             row.put("inspector", inspector != null ? inspector.getRealName() : "-");
             row.put("result", inc.getResult());
             row.put("time", inc.getInspectTime());
@@ -95,14 +99,14 @@ public class InspectionServiceImpl implements InspectionService {
         for (FinishedInspection fin : fins) {
             Batch batch = batchMapper.selectById(fin.getBatchId());
             if (batch == null) continue;
-            if (batchNo != null && !batch.getBatchNo().contains(batchNo)) continue;
-            if (type != null && !type.equals("成品质检")) continue;
-            if (result != null && !result.equals(fin.getResult())) continue;
+            if (StringUtils.hasText(batchNo) && !batch.getBatchNo().contains(batchNo)) continue;
+            if (StringUtils.hasText(type) && !type.equals(FINISHED_TYPE)) continue;
+            if (StringUtils.hasText(result) && !result.equals(fin.getResult())) continue;
 
             User inspector = userMapper.selectById(fin.getInspectorId());
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("batchNo", batch.getBatchNo());
-            row.put("type", "成品质检");
+            row.put("type", FINISHED_TYPE);
             row.put("inspector", inspector != null ? inspector.getRealName() : "-");
             row.put("result", fin.getResult());
             row.put("time", fin.getInspectTime());
@@ -124,7 +128,13 @@ public class InspectionServiceImpl implements InspectionService {
     @Override
     public void performIncoming(IncomingInspection inspection) {
         inspection.setInspectTime(LocalDateTime.now());
-        if (inspection.getId() != null) {
+        IncomingInspection existing = inspection.getId() != null
+                ? incomingMapper.selectById(inspection.getId())
+                : incomingMapper.selectOne(
+                new LambdaQueryWrapper<IncomingInspection>().eq(IncomingInspection::getBatchId, inspection.getBatchId())
+        );
+        if (existing != null) {
+            inspection.setId(existing.getId());
             incomingMapper.updateById(inspection);
         } else {
             incomingMapper.insert(inspection);
@@ -142,7 +152,13 @@ public class InspectionServiceImpl implements InspectionService {
     @Override
     public void performFinished(FinishedInspection inspection) {
         inspection.setInspectTime(LocalDateTime.now());
-        if (inspection.getId() != null) {
+        FinishedInspection existing = inspection.getId() != null
+                ? finishedMapper.selectById(inspection.getId())
+                : finishedMapper.selectOne(
+                new LambdaQueryWrapper<FinishedInspection>().eq(FinishedInspection::getBatchId, inspection.getBatchId())
+        );
+        if (existing != null) {
+            inspection.setId(existing.getId());
             finishedMapper.updateById(inspection);
         } else {
             finishedMapper.insert(inspection);

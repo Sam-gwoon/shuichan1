@@ -95,9 +95,7 @@ public class ReleaseServiceImpl implements ReleaseService {
     @Override
     public Map<String, Object> getReleaseStats() {
         Map<String, Object> stats = new LinkedHashMap<>();
-        long pending = batchMapper.selectCount(
-                new LambdaQueryWrapper<Batch>().eq(Batch::getReleaseStatus, "unreleased")
-        );
+        long pending = getPendingReleases().size();
         long released = batchMapper.selectCount(
                 new LambdaQueryWrapper<Batch>().eq(Batch::getReleaseStatus, "released")
         );

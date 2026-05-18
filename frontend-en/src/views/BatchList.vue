@@ -33,7 +33,7 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="batches" stripe>
+      <el-table :data="pagedBatches" stripe>
         <el-table-column prop="batchNo" label="Batch No." width="180"><template slot-scope="s"><strong>{{ s.row.batchNo }}</strong></template></el-table-column>
         <el-table-column prop="productType" label="Product Type"></el-table-column>
         <el-table-column prop="rawMaterialType" label="Raw Material"></el-table-column>
@@ -54,6 +54,18 @@
           <template slot-scope="s"><el-button type="text" @click="$router.push('/batches/' + s.row.id)">Details</el-button></template>
         </el-table-column>
       </el-table>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px">
+        <el-pagination
+          background
+          :current-page="page"
+          :page-sizes="pageSizes"
+          :page-size="pageSize"
+          :total="batches.length"
+          layout="total, sizes, prev, pager, next"
+          @size-change="handleSizeChange"
+          @current-change="handlePageChange">
+        </el-pagination>
+      </div>
     </div></div>
   </div>
 </template>
@@ -61,15 +73,41 @@
 <script>
 import { getBatches } from '../api';
 export default {
-  data() { return { batches: [], filters: { batchNo: '', productType: '', productionStatus: '', inspectionStatus: '' } }; },
+  data() {
+    return {
+      batches: [],
+      filters: { batchNo: '', productType: '', productionStatus: '', inspectionStatus: '' },
+      page: 1,
+      pageSize: 10,
+      pageSizes: [5, 10, 20, 50]
+    };
+  },
   computed: {
     passCount() { return this.batches.filter(b => b.incomingInspection === 'PASS').length; },
-    failCount() { return this.batches.filter(b => b.incomingInspection === 'FAIL').length; }
+    failCount() { return this.batches.filter(b => b.incomingInspection === 'FAIL').length; },
+    pagedBatches() {
+      const start = (this.page - 1) * this.pageSize;
+      return this.batches.slice(start, start + this.pageSize);
+    }
   },
   created() { this.search(); },
   methods: {
-    search() { getBatches(this.filters).then(res => { if (res.code === 200) this.batches = res.data; }); },
-    reset() { this.filters = { batchNo: '', productType: '', productionStatus: '', inspectionStatus: '' }; this.search(); }
+    search() {
+      getBatches(this.filters).then(res => {
+        if (res.code === 200) {
+          this.batches = res.data;
+          this.page = 1;
+        }
+      });
+    },
+    reset() { this.filters = { batchNo: '', productType: '', productionStatus: '', inspectionStatus: '' }; this.search(); },
+    handleSizeChange(size) {
+      this.pageSize = size;
+      this.page = 1;
+    },
+    handlePageChange(page) {
+      this.page = page;
+    }
   }
 };
 </script>

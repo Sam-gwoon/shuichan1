@@ -6,7 +6,7 @@
       <el-button type="primary" size="small" @click="showAddDialog">+ Add User</el-button>
     </div>
     <div class="card"><div class="card-body">
-      <el-table :data="users" stripe>
+      <el-table :data="pagedUsers" stripe>
         <el-table-column prop="username" label="Username" width="120"></el-table-column>
         <el-table-column prop="realName" label="Name" width="150"></el-table-column>
         <el-table-column label="Role" width="180"><template slot-scope="s"><span :class="'tag tag-' + roleColor(s.row.role)">{{ roleMap[s.row.role] }}</span></template></el-table-column>
@@ -19,6 +19,18 @@
           </template>
         </el-table-column>
       </el-table>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px" v-if="users.length > 0">
+        <el-pagination
+          background
+          :current-page="page"
+          :page-sizes="pageSizes"
+          :page-size="pageSize"
+          :total="users.length"
+          layout="total, sizes, prev, pager, next"
+          @size-change="handleSizeChange"
+          @current-change="handlePageChange">
+        </el-pagination>
+      </div>
     </div></div>
 
     <el-dialog :title="isEdit ? 'Edit User' : 'Add User'" :visible.sync="dialogVisible" width="500px">
@@ -52,13 +64,36 @@ export default {
     return {
       users: [], dialogVisible: false, isEdit: false,
       form: { username: '', realName: '', password: '', role: 'OPERATOR', employeeNo: '', statusBool: true },
-      roleMap: { ADMIN: 'Administrator', PROD_MANAGER: 'Production Manager', INSPECTOR: 'Quality Inspector', OPERATOR: 'Operator' }
+      roleMap: { ADMIN: 'Administrator', PROD_MANAGER: 'Production Manager', INSPECTOR: 'Quality Inspector', OPERATOR: 'Operator' },
+      page: 1,
+      pageSize: 10,
+      pageSizes: [5, 10, 20, 50]
     };
+  },
+  computed: {
+    pagedUsers() {
+      const start = (this.page - 1) * this.pageSize;
+      return this.users.slice(start, start + this.pageSize);
+    }
   },
   created() { this.load(); },
   methods: {
-    load() { getUsers().then(res => { if (res.code === 200) this.users = res.data; }); },
+    load() {
+      getUsers().then(res => {
+        if (res.code === 200) {
+          this.users = res.data;
+          this.page = 1;
+        }
+      });
+    },
     roleColor(r) { return { ADMIN: 'blue', PROD_MANAGER: 'orange', INSPECTOR: 'green', OPERATOR: 'gray' }[r] || 'gray'; },
+    handleSizeChange(size) {
+      this.pageSize = size;
+      this.page = 1;
+    },
+    handlePageChange(page) {
+      this.page = page;
+    },
     showAddDialog() {
       this.isEdit = false;
       this.form = { username: '', realName: '', password: '', role: 'OPERATOR', employeeNo: '', statusBool: true };

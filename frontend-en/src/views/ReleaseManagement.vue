@@ -17,7 +17,7 @@
     <el-tabs v-model="activeTab">
       <el-tab-pane label="Pending Release" name="pending">
         <div class="card"><div class="card-body">
-          <el-table :data="pendingList" stripe>
+          <el-table :data="pagedPendingList" stripe>
             <el-table-column prop="batchNo" label="Batch No." width="180"><template slot-scope="s"><strong>{{ s.row.batchNo }}</strong></template></el-table-column>
             <el-table-column prop="productType" label="Product Type"></el-table-column>
             <el-table-column label="Finished Inspection"><template slot-scope="s"><span class="tag tag-green">{{ s.row.finishedInspection }}</span></template></el-table-column>
@@ -25,15 +25,39 @@
             <el-table-column label="Action"><template slot-scope="s"><el-button type="primary" size="small" @click="doRelease(s.row)">Release</el-button></template></el-table-column>
           </el-table>
           <div v-if="pendingList.length === 0" style="text-align:center;padding:40px;color:#6f7e92">No batches pending release</div>
+          <div style="display:flex;justify-content:flex-end;margin-top:16px" v-if="pendingList.length > 0">
+            <el-pagination
+              background
+              :current-page="pendingPage"
+              :page-sizes="pageSizes"
+              :page-size="pendingPageSize"
+              :total="pendingList.length"
+              layout="total, sizes, prev, pager, next"
+              @size-change="handlePendingSizeChange"
+              @current-change="handlePendingPageChange">
+            </el-pagination>
+          </div>
         </div></div>
       </el-tab-pane>
       <el-tab-pane label="Released Batches" name="released">
         <div class="card"><div class="card-body">
-          <el-table :data="releasedList" stripe>
+          <el-table :data="pagedReleasedList" stripe>
             <el-table-column prop="batchNo" label="Batch No." width="180"></el-table-column>
             <el-table-column prop="productType" label="Product Type"></el-table-column>
             <el-table-column prop="releaseTime" label="Release Time" width="180"></el-table-column>
           </el-table>
+          <div style="display:flex;justify-content:flex-end;margin-top:16px" v-if="releasedList.length > 0">
+            <el-pagination
+              background
+              :current-page="releasedPage"
+              :page-sizes="pageSizes"
+              :page-size="releasedPageSize"
+              :total="releasedList.length"
+              layout="total, sizes, prev, pager, next"
+              @size-change="handleReleasedSizeChange"
+              @current-change="handleReleasedPageChange">
+            </el-pagination>
+          </div>
         </div></div>
       </el-tab-pane>
     </el-tabs>
@@ -43,13 +67,59 @@
 <script>
 import { getReleaseStats, getPendingReleases, getReleasedList, executeRelease } from '../api';
 export default {
-  data() { return { activeTab: 'pending', stats: { pendingRelease: 0, released: 0 }, pendingList: [], releasedList: [] }; },
+  data() {
+    return {
+      activeTab: 'pending',
+      stats: { pendingRelease: 0, released: 0 },
+      pendingList: [],
+      releasedList: [],
+      pendingPage: 1,
+      pendingPageSize: 10,
+      releasedPage: 1,
+      releasedPageSize: 10,
+      pageSizes: [5, 10, 20, 50]
+    };
+  },
+  computed: {
+    pagedPendingList() {
+      const start = (this.pendingPage - 1) * this.pendingPageSize;
+      return this.pendingList.slice(start, start + this.pendingPageSize);
+    },
+    pagedReleasedList() {
+      const start = (this.releasedPage - 1) * this.releasedPageSize;
+      return this.releasedList.slice(start, start + this.releasedPageSize);
+    }
+  },
   created() { this.load(); },
   methods: {
     load() {
       getReleaseStats().then(res => { if (res.code === 200) this.stats = res.data; });
-      getPendingReleases().then(res => { if (res.code === 200) this.pendingList = res.data; });
-      getReleasedList().then(res => { if (res.code === 200) this.releasedList = res.data; });
+      getPendingReleases().then(res => {
+        if (res.code === 200) {
+          this.pendingList = res.data;
+          this.pendingPage = 1;
+        }
+      });
+      getReleasedList().then(res => {
+        if (res.code === 200) {
+          this.releasedList = res.data;
+          this.releasedPage = 1;
+        }
+      });
+    },
+    handlePendingSizeChange(size) {
+      this.pendingPageSize = size;
+      this.pendingPage = 1;
+    },
+    handlePendingPageChange(page) {
+      this.pendingPage = page;
+    },
+    handleReleasedSizeChange(size) {
+      this.releasedPageSize = size;
+      this.releasedPage = 1;
+    },
+    handleReleasedPageChange(page) {
+      this.releasedPage = page;
     },
     doRelease(row) {
       this.$confirm('Confirm release of batch ' + row.batchNo + '?', 'Confirm', { type: 'info' }).then(() => {

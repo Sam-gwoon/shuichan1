@@ -126,7 +126,7 @@
               <tr><td style="width:150px;color:#6f7e92;padding:6px 0">Trace Code</td><td><strong>{{ batch.traceability ? batch.traceability.traceCode : 'Not generated (release required first)' }}</strong></td></tr>
               <tr><td style="color:#6f7e92;padding:6px 0">Generated At</td><td>{{ batch.traceability ? batch.traceability.generateTime : 'N/A' }}</td></tr>
               <tr><td style="color:#6f7e92;padding:6px 0">Public Access</td><td><span :class="batch.traceability && batch.traceability.isPublic ? 'tag tag-green' : 'tag tag-gray'">{{ batch.traceability && batch.traceability.isPublic ? 'Open' : 'Closed' }}</span></td></tr>
-              <tr><td style="color:#6f7e92;padding:6px 0">QR URL</td><td><a :href="'/#/public?code=' + (batch.traceability ? batch.traceability.traceCode : '')" style="color:#2d79ea">{{ batch.traceability ? batch.traceability.qrUrl : '-' }}</a></td></tr>
+              <tr><td style="color:#6f7e92;padding:6px 0">QR URL</td><td><a :href="publicTraceUrl" style="color:#2d79ea">{{ publicTraceUrl || '-' }}</a></td></tr>
             </table>
             <div v-if="!batch.traceability" style="margin-top:16px;padding:12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a;color:#92400e;font-size:13px">
               <i class="el-icon-warning-outline" style="margin-right:8px"></i>Please execute "Release" first. The system will auto-generate a trace code and enable public query.
@@ -135,9 +135,15 @@
           <div class="card" v-if="batch.traceability">
             <div class="card-header"><h3>Batch QR Code</h3></div>
             <div class="card-body" style="text-align:center">
-              <div style="width:140px;height:140px;border:1px solid #e6edf7;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:48px;color:#d1d5db"><i class="el-icon-s-data"></i></div>
-              <p style="font-size:13px;color:#6f7e92;margin-bottom:8px">{{ batch.traceability.qrUrl }}</p>
-              <el-button size="small" @click="$message.success('Link copied')">Copy Link</el-button>
+              <div style="width:180px;height:180px;border:1px solid #e6edf7;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;background:#fff">
+                <img v-if="qrCodeDataUrl" :src="qrCodeDataUrl" alt="Batch QR Code" style="width:160px;height:160px" />
+                <i v-else class="el-icon-loading" style="font-size:28px;color:#9ca3af"></i>
+              </div>
+              <p style="font-size:13px;color:#6f7e92;margin-bottom:12px;word-break:break-all">{{ publicTraceUrl }}</p>
+              <div style="display:flex;justify-content:center;gap:10px">
+                <el-button size="small" @click="copyTraceLink">Copy Link</el-button>
+                <el-button size="small" type="primary" :disabled="!qrCodeDataUrl" @click="downloadQrCode">Download QR</el-button>
+              </div>
             </div>
           </div>
         </div>
@@ -159,9 +165,10 @@
 </template>
 
 <script>
+import QRCode from 'qrcode';
 import { getBatchDetail, executeRelease, addProductionRecord } from '../api';
 export default {
-  data() { return { activeTab: 'overview', batch: {} }; },
+  data() { return { activeTab: 'overview', batch: {}, qrCodeDataUrl: '' }; },
   computed: {
     basicInfo() {
       const b = this.batch.batch;
@@ -210,13 +217,22 @@ export default {
     },
     releaseStepClass() { return this.batch.batch && this.batch.batch.releaseStatus === 'released' ? 'done' : 'current'; },
     releaseStepIcon() { return this.batch.batch && this.batch.batch.releaseStatus === 'released' ? 'el-icon-check' : 'el-icon-upload2'; },
-    history() { return this.batch.history || []; }
+    history() { return this.batch.history || []; },
+    publicTraceUrl() {
+      const traceCode = this.batch.traceability && this.batch.traceability.traceCode;
+      return traceCode ? `${window.location.origin}/#/public?code=${encodeURIComponent(traceCode)}` : '';
+    }
   },
   created() { this.loadDetail(); },
   methods: {
     loadDetail() {
       const id = this.$route.params.id;
-      getBatchDetail(id).then(res => { if (res.code === 200) this.batch = res.data; });
+      getBatchDetail(id).then(async res => {
+        if (res.code === 200) {
+          this.batch = res.data;
+          await this.generateQrCode();
+        }
+      });
     },
     doRelease() {
       this.$confirm('Confirm release of this batch?', 'Confirm', { type: 'info' }).then(() => {
@@ -230,6 +246,59 @@ export default {
     hasProcessType(type) { return (this.batch.productionRecords || []).some(r => r.processType === type); },
     processCount(type) { return (this.batch.productionRecords || []).filter(r => r.processType === type).length; },
     getProcessByType(type) { return (this.batch.productionRecords || []).filter(r => r.processType === type); },
+    async generateQrCode() {
+      if (!this.publicTraceUrl) {
+        this.qrCodeDataUrl = '';
+        return;
+      }
+      try {
+        this.qrCodeDataUrl = await QRCode.toDataURL(this.publicTraceUrl, {
+          width: 320,
+          margin: 1
+        });
+      } catch (_) {
+        this.qrCodeDataUrl = '';
+        this.$message.error('Failed to generate QR code');
+      }
+    },
+    copyTraceLink() {
+      if (!this.publicTraceUrl) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(this.publicTraceUrl).then(() => {
+          this.$message.success('Link copied');
+        }).catch(() => {
+          this.fallbackCopyTraceLink();
+        });
+        return;
+      }
+      this.fallbackCopyTraceLink();
+    },
+    fallbackCopyTraceLink() {
+      const input = document.createElement('textarea');
+      input.value = this.publicTraceUrl;
+      input.setAttribute('readonly', 'readonly');
+      input.style.position = 'absolute';
+      input.style.left = '-9999px';
+      document.body.appendChild(input);
+      input.select();
+      try {
+        document.execCommand('copy');
+        this.$message.success('Link copied');
+      } catch (_) {
+        this.$message.error('Failed to copy link');
+      } finally {
+        document.body.removeChild(input);
+      }
+    },
+    downloadQrCode() {
+      if (!this.qrCodeDataUrl || !this.batch.traceability) return;
+      const link = document.createElement('a');
+      link.href = this.qrCodeDataUrl;
+      link.download = `${this.batch.traceability.traceCode || 'trace-code'}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
     addProcessRecord(type) {
       const user = JSON.parse(localStorage.getItem('user'));
       const typeMap = { sorting: 'Sorting', cleaning: 'Cleaning', packaging: 'Packaging' };
